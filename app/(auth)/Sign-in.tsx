@@ -16,6 +16,7 @@ import { type Href, Link, useRouter } from 'expo-router';
 import clsx from 'clsx';
 import '@/global.css';
 import AuthBrand from '@/components/AuthBrand';
+import { usePostHog } from 'posthog-react-native';
 
 const SafeAreaView = styled(RNSafeAreaView);
 
@@ -24,6 +25,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function SignIn() {
   const { signIn, errors: clerkErrors, fetchStatus } = useSignIn();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [email, setEmail] = useState('');
@@ -57,17 +59,28 @@ export default function SignIn() {
 
   async function handleSignIn() {
     if (!validateForm()) return;
+    posthog.capture('sign_in_submitted');
     const { error } = await signIn.password({ emailAddress: email.trim(), password });
-    if (error) return;
+    if (error) {
+      posthog.capture('sign_in_failed');
+      return;
+    }
 
     if (signIn.status === 'complete') {
+      posthog.capture('sign_in_succeeded');
       await finalize();
     } else if (signIn.status === 'needs_client_trust') {
       const emailFactor = signIn.supportedSecondFactors?.find(
         (f) => f.strategy === 'email_code',
       );
-      if (emailFactor) await signIn.mfa.sendEmailCode();
-      setStep('verify');
+      if (emailFactor) {
+        await signIn.mfa.sendEmailCode();
+        posthog.capture('sign_in_mfa_required');
+        setStep('verify');
+      } else {
+        posthog.capture('sign_in_failed', { reason: 'no_mfa_method' });
+        setErrors({ password: 'Additional verification is required but no supported method is available.' });
+      }
     }
   }
 
@@ -76,8 +89,12 @@ export default function SignIn() {
       setErrors({ code: 'Enter the 6-digit code sent to your email.' });
       return;
     }
+    posthog.capture('sign_in_mfa_verify_submitted');
     await signIn.mfa.verifyEmailCode({ code });
-    if (signIn.status === 'complete') await finalize();
+    if (signIn.status === 'complete') {
+      posthog.capture('sign_in_succeeded');
+      await finalize();
+    }
   }
 
   // ── MFA / client-trust verify step ───────────────────────────────────────
@@ -140,7 +157,7 @@ export default function SignIn() {
 
                 <TouchableOpacity
                   className="auth-secondary-button"
-                  onPress={() => signIn.mfa.sendEmailCode()}
+                  onPress={() => { posthog.capture('sign_in_mfa_resend_tapped'); signIn.mfa.sendEmailCode(); }}
                   disabled={isLoading}
                   activeOpacity={0.8}
                 >
@@ -151,7 +168,7 @@ export default function SignIn() {
 
             <TouchableOpacity
               className="auth-link-row"
-              onPress={() => { signIn.reset(); setStep('form'); setCode(''); setErrors({}); }}
+              onPress={() => { posthog.capture('sign_in_mfa_go_back_tapped'); signIn.reset(); setStep('form'); setCode(''); setErrors({}); }}
               activeOpacity={0.7}
             >
               <Text className="auth-link-copy">Want to start over?</Text>

@@ -1,10 +1,12 @@
 import { Tabs, Redirect } from "expo-router";
 import {View, Image} from "react-native";
+import { BlurView } from "expo-blur";
 import clsx from "clsx";
 import {tabs} from "@/constants/data";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {colors, components} from "@/constants/theme";
 import { useAuth } from "@clerk/expo";
+import { SubscriptionsProvider } from "@/context/SubscriptionsContext";
 
 interface TabIconProps {
     focused: boolean;
@@ -27,7 +29,7 @@ const TabLayout = () => {
                     </View>
                 )
         }
-           return ( <Tabs screenOptions={{
+           return ( <SubscriptionsProvider><Tabs screenOptions={{
                headerShown: false,
                    lazy:true,
                tabBarShowLabel: false,
@@ -37,10 +39,20 @@ const TabLayout = () => {
                height: tabBar.height,
                marginHorizontal: tabBar.horizontalInset,
                borderRadius: tabBar.radius,
-               backgroundColor: colors.primary,
+               backgroundColor: 'transparent',
                borderTopWidth: 0,
-               elevation: 0
+               elevation: 0,
+               overflow: 'hidden',
+               borderWidth: 0.5,
+               borderColor: 'rgba(255,255,255,0.15)',
                 },
+               tabBarBackground: () => (
+                   <BlurView
+                       intensity={80}
+                       tint="dark"
+                       style={{ flex: 1, backgroundColor: 'rgba(8,17,38,0.55)' }}
+                   />
+               ),
                    tabBarItemStyle: {
                    paddingVertical: tabBar.height /2 - tabBar.
                        iconFrame /1.6
@@ -62,7 +74,7 @@ const TabLayout = () => {
                             }}
                         />
                     ))}
-            </Tabs>
+            </Tabs></SubscriptionsProvider>
            )
     }
 ;

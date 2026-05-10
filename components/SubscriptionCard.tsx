@@ -1,9 +1,9 @@
-import {View, Text, Image, Pressable} from 'react-native'
+import {View, Text, Image, Pressable, ActivityIndicator} from 'react-native'
 import React from 'react'
-import {formatCurrency, formatStatusLabel, formatSubscriptionDateTime} from "@/lib/utils";
+import {formatCurrency, formatSubscriptionDateTime} from "@/lib/utils";
 import clsx from "clsx";
 
-const SubscriptionCard = ({ name, price, currency, icon, billing, color, category, plan, renewalDate, expanded, onPress, paymentMethod, startDate, status}: SubscriptionCardProps) => {
+const SubscriptionCard = ({ name, price, currency, icon, billing, color, category, plan, renewalDate, expanded, onPress, onCancelPress, isCancelling, paymentMethod, startDate}: SubscriptionCardProps) => {
     return (
         <Pressable onPress={onPress} className={clsx('sub-card', expanded ? 'sub-card-expanded' : 'bg-card')} style={!expanded && color ? { backgroundColor: color } : undefined}>
             <View className="sub-head">
@@ -26,7 +26,7 @@ const SubscriptionCard = ({ name, price, currency, icon, billing, color, categor
             </View>
 
             {expanded && (
-                <View className="sub-bdy">
+                <View className="sub-body">
                     <View className="sub-details">
                         <View className="sub-row">
                             <View className="sub-row-copy">
@@ -52,13 +52,17 @@ const SubscriptionCard = ({ name, price, currency, icon, billing, color, categor
                                 <Text className="sub-value" numberOfLines={1} ellipsizeMode="tail">{renewalDate ? formatSubscriptionDateTime(renewalDate) : 'Not provided'}</Text>
                             </View>
                         </View>
-                        <View className="sub-row">
-                            <View className="sub-row-copy">
-                                <Text className="sub-label">Status:</Text>
-                                <Text className="sub-value" numberOfLines={1} ellipsizeMode="tail">{status ? formatStatusLabel(status) : 'Not provided'}</Text>
-                            </View>
-                        </View>
                     </View>
+
+                    <Pressable
+                        onPress={isCancelling ? undefined : onCancelPress}
+                        className={clsx('sub-cancel', isCancelling && 'sub-cancel-disabled')}
+                    >
+                        {isCancelling
+                            ? <ActivityIndicator color="#fff9e3" />
+                            : <Text className="sub-cancel-text">Remove</Text>
+                        }
+                    </Pressable>
                 </View>
             )}
         </Pressable>

@@ -7,42 +7,6 @@ export const tabs: AppTab[] = [
     { name: "settings", title: "Settings", icon: icons.setting },
 ];
 
-export const HOME_USER = {
-    name: "Ammar_01",
-};
-
-export const HOME_BALANCE = {
-    amount: 2489.48,
-    nextRenewalDate: "2026-03-18T09:00:00.000Z",
-};
-
-export const UPCOMING_SUBSCRIPTIONS: UpcomingSubscription[] = [
-    {
-        id: "spotify",
-        icon: icons.spotify,
-        name: "Spotify",
-        price: 5.99,
-        currency: "USD",
-        daysLeft: 2,
-    },
-    {
-        id: "notion",
-        icon: icons.notion,
-        name: "Notion",
-        price: 12.0,
-        currency: "USD",
-        daysLeft: 4,
-    },
-    {
-        id: "figma",
-        icon: icons.figma,
-        name: "Figma",
-        price: 15.0,
-        currency: "USD",
-        daysLeft: 6,
-    },
-];
-
 export const HOME_SUBSCRIPTIONS: Subscription[] = [
     {
         id: "adobe-creative-cloud",
@@ -51,12 +15,11 @@ export const HOME_SUBSCRIPTIONS: Subscription[] = [
         plan: "Teams Plan",
         category: "Design",
         paymentMethod: "Visa ending in 8530",
-        status: "active",
         startDate: "2025-03-20T10:00:00.000Z",
         price: 77.49,
         currency: "USD",
         billing: "Monthly",
-        renewalDate: "2026-03-20T10:00:00.000Z",
+        renewalDate: "2026-06-20T10:00:00.000Z",
         color: "#f5c542",
     },
     {
@@ -66,12 +29,11 @@ export const HOME_SUBSCRIPTIONS: Subscription[] = [
         plan: "Developer",
         category: "Developer Tools",
         paymentMethod: "Mastercard ending in 2408",
-        status: "active",
         startDate: "2024-11-24T10:00:00.000Z",
         price: 9.99,
         currency: "USD",
         billing: "Monthly",
-        renewalDate: "2026-03-24T10:00:00.000Z",
+        renewalDate: "2026-07-24T10:00:00.000Z",
         color: "#e8def8",
     },
     {
@@ -81,12 +43,11 @@ export const HOME_SUBSCRIPTIONS: Subscription[] = [
         plan: "Pro Plan",
         category: "AI Tools",
         paymentMethod: "Amex ending in 1010",
-        status: "paused",
         startDate: "2025-06-27T10:00:00.000Z",
         price: 20.0,
         currency: "USD",
         billing: "Monthly",
-        renewalDate: "2026-03-27T10:00:00.000Z",
+        renewalDate: "2026-08-27T10:00:00.000Z",
         color: "#b8d4e3",
     },
     {
@@ -96,12 +57,11 @@ export const HOME_SUBSCRIPTIONS: Subscription[] = [
         plan: "Yearly Access",
         category: "Design",
         paymentMethod: "Visa ending in 7784",
-        status: "cancelled",
         startDate: "2024-04-02T10:00:00.000Z",
         price: 119.99,
         currency: "USD",
         billing: "Yearly",
-        renewalDate: "2026-04-02T10:00:00.000Z",
+        renewalDate: "2026-08-02T10:00:00.000Z",
         color: "#b8e8d0",
     },
 ];

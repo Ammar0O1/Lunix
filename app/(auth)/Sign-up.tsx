@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePostHog } from 'posthog-react-native';
 import {
   View,
   Text,
@@ -24,8 +25,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function SignUp() {
   const { signUp, errors: clerkErrors, fetchStatus } = useSignUp();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const [step, setStep] = useState<'form' | 'verify'>('form');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -40,6 +43,9 @@ export default function SignUp() {
 
   function validateForm() {
     const e: Record<string, string> = {};
+    if (!username.trim()) e.username = 'Username is required.';
+    else if (username.trim().length < 3) e.username = 'Username must be at least 3 characters.';
+    else if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) e.username = 'Only letters, numbers, and underscores allowed.';
     if (!email.trim()) e.email = 'Email is required.';
     else if (!EMAIL_RE.test(email.trim())) e.email = 'Enter a valid email address.';
     if (!password) e.password = 'Password is required.';
@@ -52,8 +58,12 @@ export default function SignUp() {
 
   async function handleSignUp() {
     if (!validateForm()) return;
-    const { error } = await signUp.password({ emailAddress: email.trim(), password });
-    if (error) return;
+    posthog.capture('sign_up_submitted');
+    const { error } = await signUp.password({ emailAddress: email.trim(), password, username: username.trim() });
+    if (error) {
+      posthog.capture('sign_up_failed');
+      return;
+    }
     // Clerk auto-sends the verification email on password sign-up when email
     // verification is required. Move to the verify step immediately and fire
     // sendEmailCode() as a non-blocking fallback in case it wasn't auto-sent.
@@ -66,8 +76,10 @@ export default function SignUp() {
       setErrors({ code: 'Enter the 6-digit code sent to your email.' });
       return;
     }
+    posthog.capture('sign_up_email_verify_submitted');
     await signUp.verifications.verifyEmailCode({ code });
     if (signUp.status === 'complete') {
+      posthog.capture('sign_up_succeeded');
       await signUp.finalize({
         navigate: ({ session }) => {
           if (session?.currentTask) return;
@@ -138,7 +150,7 @@ export default function SignUp() {
 
                 <TouchableOpacity
                   className="auth-secondary-button"
-                  onPress={() => signUp.verifications.sendEmailCode()}
+                  onPress={() => { posthog.capture('sign_up_resend_code_tapped'); signUp.verifications.sendEmailCode(); }}
                   disabled={isLoading}
                   activeOpacity={0.8}
                 >
@@ -181,6 +193,24 @@ export default function SignUp() {
 
           <View className="auth-card">
             <View className="auth-form">
+
+              {/* Username */}
+              <View className="auth-field">
+                <Text className="auth-label">Username</Text>
+                <TextInput
+                  className={clsx('auth-input', errors.username && 'auth-input-error')}
+                  placeholder="e.g. john_doe"
+                  placeholderTextColor="rgba(8,17,38,0.25)"
+                  value={username}
+                  onChangeText={(v) => { setUsername(v); clearFieldError('username'); }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+                {errors.username
+                  ? <Text className="auth-error">{errors.username}</Text>
+                  : <Text className="auth-helper">Letters, numbers, and underscores only</Text>}
+              </View>
 
               {/* Email */}
               <View className="auth-field">
@@ -255,10 +285,10 @@ export default function SignUp() {
               <TouchableOpacity
                 className={clsx(
                   'auth-button',
-                  (!email || !password || !confirm || isLoading) && 'auth-button-disabled',
+                  (!username || !email || !password || !confirm || isLoading) && 'auth-button-disabled',
                 )}
                 onPress={handleSignUp}
-                disabled={!email || !password || !confirm || isLoading}
+                disabled={!username || !email || !password || !confirm || isLoading}
                 activeOpacity={0.8}
               >
                 {isLoading

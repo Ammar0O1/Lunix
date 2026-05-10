@@ -19,7 +19,6 @@ declare global {
         plan?: string;
         category?: string;
         paymentMethod?: string;
-        status?: string;
         startDate?: string;
         price: number;
         currency?: string;
